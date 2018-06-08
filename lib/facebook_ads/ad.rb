@@ -8,13 +8,13 @@ module FacebookAds
     # belongs_to ad_account
 
     def ad_account
-      @ad_set ||= AdAccount.find(account_id)
+      @ad_account ||= AdAccount.find(account_id)
     end
 
     # belongs_to ad_campaign
 
     def ad_campaign
-      @ad_set ||= AdCampaign.find(campaign_id)
+      @ad_campaign ||= AdCampaign.find(campaign_id)
     end
 
     # belongs_to ad_set
@@ -27,6 +27,33 @@ module FacebookAds
 
     def ad_creative
       @ad_creative ||= AdCreative.find(creative['id'])
+    end
+
+    def update_ad_creative( params )
+      current = ad_creative
+      object_story_spec = current.object_story_spec
+      link_data = object_story_spec.link_data
+
+      #new_creative_data = AdCreative.photo(
+      new_creative_data = {
+        name: current.name,
+        page_id: object_story_spec.page_id,
+        instagram_actor_id: object_story_spec.instagram_actor_id,
+        message: link_data.message,
+        link: params[ :link ] || link_data.link,
+        link_title: link_data.name,
+        image_hash: link_data.image_hash,
+        call_to_action_type: link_data.call_to_action.type,
+        link_description: link_data.description,
+        url_tags: params[ :url_tags ] || current.url_tags,
+        attachment_style: link_data.attachment_style,
+        caption: link_data.caption
+      }
+
+      new_creative = ad_account.create_ad_creative( new_creative_data, creative_type: 'image' )
+
+      query_data = { creative: { creative_id: new_creative.id }.to_json }
+      update( query_data )
     end
 
     # has_many ad_insights

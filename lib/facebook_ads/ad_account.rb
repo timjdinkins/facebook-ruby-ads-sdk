@@ -9,6 +9,11 @@ module FacebookAds
         get('/me/adaccounts', query: query, objectify: true)
       end
 
+      def find( id )
+        id = "act_#{ id }" unless id =~ /^act_.*/
+        super( id )
+      end
+
       def find_by(conditions)
         all.detect do |object|
           conditions.all? do |key, value|
@@ -197,7 +202,7 @@ module FacebookAds
     end
 
     def create_image_ad_creative(creative)
-      required = %i[name page_id message link link_title image_hash call_to_action_type]
+      required = %i[name page_id message link link_title image_hash call_to_action_type url_tags]
 
       unless (keys = required - creative.keys).length.zero?
         raise Exception, "Creative is missing the following: #{keys.join(', ')}"
@@ -205,6 +210,7 @@ module FacebookAds
 
       raise Exception, "Creative call_to_action_type must be one of: #{AdCreative::CALL_TO_ACTION_TYPES.join(', ')}" unless AdCreative::CALL_TO_ACTION_TYPES.include?(creative[:call_to_action_type])
       query = AdCreative.photo(creative)
+
       result = AdCreative.post("/#{id}/adcreatives", query: query)
       AdCreative.find(result['id'])
     end
