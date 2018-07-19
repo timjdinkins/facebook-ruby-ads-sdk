@@ -81,6 +81,8 @@ module FacebookAds
         create_link_ad_creative(creative)
       when 'image'
         create_image_ad_creative(creative)
+      when 'video'
+        create_video_ad_creative(creative)
       else
         create_image_ad_creative(creative)
       end
@@ -158,6 +160,19 @@ module FacebookAds
 
     # hash_many ad_audiences
 
+    def create_lal_ad_audience( origin_campaign:, conversion_type:, start_ratio:, end_ratio:, country: 'US' )
+      name = "#{ origin_campaign.name }_LAL#{ r.start }p#{ r.end }p"
+      spec = {'origin_ids': origin_campaign.id, 'starting_ratio': start_ratio.to_f / 100, 'ratio': end_ratio.to_f / 100, 'conversion_type': conversion_type, 'country': country }
+      query = {
+        name: name,
+        subtype: 'LOOKALIKE',
+        spec: spec
+      }
+
+      result = AdAudience.post("/#{id}/customaudiences", query: query)
+      AdAudience.find( result['id'] )
+    end
+
     def create_ad_audience_with_pixel(name:, pixel_id:, event_name:, subtype: 'WEBSITE', retention_days: 15)
       query = {
         name: name,
@@ -208,8 +223,24 @@ module FacebookAds
         raise Exception, "Creative is missing the following: #{keys.join(', ')}"
       end
 
-      raise Exception, "Creative call_to_action_type must be one of: #{AdCreative::CALL_TO_ACTION_TYPES.join(', ')}" unless AdCreative::CALL_TO_ACTION_TYPES.include?(creative[:call_to_action_type])
-      query = AdCreative.photo(creative)
+      unless AdCreative::CALL_TO_ACTION_TYPES.include?(creative[:call_to_action_type])
+        raise Exception, "Creative call_to_action_type must be one of: #{AdCreative::CALL_TO_ACTION_TYPES.join(', ')}"
+      end
+
+      query = AdCreative.photo( creative.slice( :name, :page_id, :instagram_actor_id, :message, :link, :app_link, :link_title, :image_hash, :call_to_action_type, :link_description, :url_tags, :attachment_style, :caption ) )
+
+      result = AdCreative.post("/#{id}/adcreatives", query: query)
+      AdCreative.find(result['id'])
+    end
+
+    def create_video_ad_creative(creative)
+      required = %i[ page_id video_id message link image_hash call_to_action_type ]
+
+      unless (keys = required - creative.keys).length.zero?
+        raise Exception, "Creative is missing the following: #{keys.join(', ')}"
+      end
+
+      query = AdCreative.video( creative.slice( :page_id, :video_id, :image_hash, :title, :instagram_actor_id, :message, :link, :call_to_action_type, :link_description, :url_tags, :link_caption ) )
 
       result = AdCreative.post("/#{id}/adcreatives", query: query)
       AdCreative.find(result['id'])

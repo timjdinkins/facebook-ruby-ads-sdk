@@ -48,8 +48,35 @@ module FacebookAds
 
         {
           name: name,
-          url_tags: url_tags,
-          object_story_spec: object_story_spec
+          url_tags: url_tags.to_query,
+          object_story_spec: object_story_spec.to_json
+        }
+      end
+
+      def video( page_id:, video_id:, image_hash:, title:, instagram_actor_id: nil, message:, link:, call_to_action_type:, link_description: nil, url_tags: nil, link_caption: nil )
+        object_story_spec = {
+          'page_id' => page_id,
+          'instagram_actor_id' => instagram_actor_id,
+          'video_data' => {
+            'video_id' => video_id,
+            'title' => title,
+            'message' => message,
+            'image_hash' => image_hash,
+            'link_description' => link_description,
+            'call_to_action' => {
+              'type' => call_to_action_type,
+              'value' => {
+                'link_caption': link_caption,
+                'link' => link
+              }
+            }
+          }
+        }
+
+        {
+          name: name,
+          url_tags: url_tags.to_query,
+          object_story_spec: object_story_spec.to_json
         }
       end
 

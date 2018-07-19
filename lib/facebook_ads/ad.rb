@@ -30,27 +30,37 @@ module FacebookAds
     end
 
     def update_ad_creative( params )
+      # required = %i[ page_id message link call_to_action_type ]
       current = ad_creative
       object_story_spec = current.object_story_spec
-      link_data = object_story_spec.link_data
-
-      #new_creative_data = AdCreative.photo(
+      link_data = if params[ :type ] == 'image'
+                    object_story_spec.link_data
+                  elsif params[ :type ] == 'link'
+                    object_story_spec.link_data
+                  elsif params[ :type ] == 'video'
+                    object_story_spec.video_data
+                  end
       new_creative_data = {
         name: current.name,
         page_id: object_story_spec.page_id,
-        instagram_actor_id: object_story_spec.instagram_actor_id,
+        video_id: link_data.video_id,
+        title: link_data.title,
         message: link_data.message,
         link: params[ :link ] || link_data.link,
         link_title: link_data.name,
         image_hash: link_data.image_hash,
         call_to_action_type: link_data.call_to_action.type,
-        link_description: link_data.description,
+        call_to_action_link_caption: link_data.call_to_action.value && link_data.call_to_action.value.link_caption,
+        link_description: link_data.description || link_data.link_description,
         url_tags: params[ :url_tags ] || current.url_tags,
         attachment_style: link_data.attachment_style,
         caption: link_data.caption
       }
+      if object_story_spec.instagram_actor_id
+        new_creative_data[ :instagram_actor_id ] = object_story_spec.instagram_actor_id
+      end
 
-      new_creative = ad_account.create_ad_creative( new_creative_data, creative_type: 'image' )
+      new_creative = ad_account.create_ad_creative( new_creative_data, creative_type: params[ :type ] )
 
       query_data = { creative: { creative_id: new_creative.id }.to_json }
       update( query_data )

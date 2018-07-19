@@ -57,6 +57,16 @@ module FacebookAds
       AdSet.paginate("/#{id}/adsets", query: { effective_status: effective_status, limit: limit })
     end
 
+    def create_lal_set( conversion_type: )
+      [[1,3], [3,5], [5,7]].map { | (start_r, end_r) | create_lal( conversion_type: conversion_type, start_ratio: start, end_ratio: end_r ) }
+    end
+
+    def create_lal( conversion_type:, start_ratio:, end_ratio: )
+      audience = ad_account.create_lal_ad_audience( origin_campaign: self, conversion_type: conversion_type, start_ratio: start_ratio, end_ratio: end_ratio )
+      FbLalCampaign.create( fb_id: audience.id, fb_campaign_id: @campaign.id, name: audience.name )
+      audience
+    end
+
     def create_ad_set(name:, promoted_object: {}, targeting:, daily_budget: nil, lifetime_budget: nil, end_time: nil, optimization_goal:, billing_event: 'IMPRESSIONS', status: 'ACTIVE', bid_strategy: nil, bid_amount: nil)
       raise Exception, "Optimization goal must be one of: #{AdSet::OPTIMIZATION_GOALS.join(', ')}" unless AdSet::OPTIMIZATION_GOALS.include?(optimization_goal)
       raise Exception, "Billing event must be one of: #{AdSet::BILLING_EVENTS.join(', ')}" unless AdSet::BILLING_EVENTS.include?(billing_event)
