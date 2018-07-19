@@ -56,6 +56,10 @@ module FacebookAds
         attachment_style: link_data.attachment_style,
         caption: link_data.caption
       }
+
+      if current.instagram_actor_id
+        new_creative_data[ :instagram_actor_id ] = current.instagram_actor_id
+      end
       if object_story_spec.instagram_actor_id
         new_creative_data[ :instagram_actor_id ] = object_story_spec.instagram_actor_id
       end

@@ -2,7 +2,7 @@ module FacebookAds
   # Ad ad creative has many ad images and belongs to an ad account.
   # https://developers.facebook.com/docs/marketing-api/reference/ad-creative
   class AdCreative < Base
-    FIELDS               = %w[id name object_story_id url_tags object_story_spec effective_object_story_id object_type thumbnail_url status].freeze
+    FIELDS               = %w[id name object_story_id url_tags object_story_spec effective_object_story_id object_type thumbnail_url status instagram_actor_id].freeze
     CALL_TO_ACTION_TYPES = %w[SHOP_NOW INSTALL_MOBILE_APP USE_MOBILE_APP SIGN_UP DOWNLOAD BUY_NOW NO_BUTTON LEARN_MORE].freeze
 
     class << self
@@ -56,7 +56,6 @@ module FacebookAds
       def video( page_id:, video_id:, image_hash:, title:, instagram_actor_id: nil, message:, link:, call_to_action_type:, link_description: nil, url_tags: nil, link_caption: nil )
         object_story_spec = {
           'page_id' => page_id,
-          'instagram_actor_id' => instagram_actor_id,
           'video_data' => {
             'video_id' => video_id,
             'title' => title,
@@ -76,7 +75,8 @@ module FacebookAds
         {
           name: name,
           url_tags: url_tags.to_query,
-          object_story_spec: object_story_spec.to_json
+          object_story_spec: object_story_spec.to_json,
+          instagram_actor_id: instagram_actor_id
         }
       end
 
