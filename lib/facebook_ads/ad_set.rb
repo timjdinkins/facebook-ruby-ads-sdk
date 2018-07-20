@@ -75,8 +75,12 @@ module FacebookAds
 
     # has_many ads
 
-    def ads(effective_status: ['ACTIVE'], limit: 100)
-      Ad.paginate("/#{id}/ads", query: { effective_status: effective_status, limit: limit })
+    def ads(effective_status: nil, limit: 100)
+      if effective_status
+        Ad.paginate("/#{id}/ads", query: { effective_status: effective_status, limit: limit })
+      else
+        Ad.paginate("/#{id}/ads", query: { limit: limit })
+      end
     end
 
     def create_ad(name:, creative_id:, status: 'PAUSED')
