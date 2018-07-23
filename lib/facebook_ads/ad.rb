@@ -2,7 +2,7 @@ module FacebookAds
   # An ad belongs to an ad set. It is created using an ad creative.
   # https://developers.facebook.com/docs/marketing-api/reference/adgroup
   class Ad < Base
-    FIELDS   = %w[id account_id campaign_id adset_id adlabels bid_amount bid_info bid_type configured_status conversion_specs created_time creative effective_status last_updated_by_app_id name tracking_specs updated_time ad_review_feedback].freeze
+    FIELDS   = %w[ id account_id campaign_id adset_id adlabels bid_amount bid_info bid_type configured_status conversion_specs created_time creative effective_status last_updated_by_app_id name tracking_specs updated_time ad_review_feedback ].freeze
     STATUSES = %w[ACTIVE PAUSED DELETED PENDING_REVIEW DISAPPROVED PREAPPROVED PENDING_BILLING_INFO CAMPAIGN_PAUSED ARCHIVED ADSET_PAUSED].freeze
 
     # belongs_to ad_account
@@ -30,38 +30,46 @@ module FacebookAds
     end
 
     def update_ad_creative( params )
-      # required = %i[ page_id message link call_to_action_type ]
       current = ad_creative
-      object_story_spec = current.object_story_spec
-      link_data = if params[ :type ] == 'image'
-                    object_story_spec.link_data
-                  elsif params[ :type ] == 'link'
-                    object_story_spec.link_data
-                  elsif params[ :type ] == 'video'
-                    object_story_spec.video_data
-                  end
       new_creative_data = {
-        name: current.name,
-        page_id: object_story_spec.page_id,
-        video_id: link_data.video_id,
-        title: link_data.title,
-        message: link_data.message,
-        link: params[ :link ] || link_data.link,
-        link_title: link_data.name,
-        image_hash: link_data.image_hash,
-        call_to_action_type: link_data.call_to_action.type,
-        call_to_action_link_caption: link_data.call_to_action.value && link_data.call_to_action.value.link_caption,
-        link_description: link_data.description || link_data.link_description,
-        url_tags: params[ :url_tags ] || current.url_tags,
-        attachment_style: link_data.attachment_style,
-        caption: link_data.caption
+        url_tags: params[ :url_tags ] || current.url_tags
       }
 
-      if current.instagram_actor_id
+      if params[ :type ] == 'ptr'
+        new_creative_data[ :object_story_id ] = current.object_story_id
         new_creative_data[ :instagram_actor_id ] = current.instagram_actor_id
-      end
-      if object_story_spec.instagram_actor_id
-        new_creative_data[ :instagram_actor_id ] = object_story_spec.instagram_actor_id
+      else
+        if current.instagram_actor_id
+          new_creative_data[ :instagram_actor_id ] = current.instagram_actor_id
+        end
+        object_story_spec = current.object_story_spec
+        if object_story_spec
+          link_data = if params[ :type ] == 'image'
+                        object_story_spec.link_data
+                      elsif params[ :type ] == 'link'
+                        object_story_spec.link_data
+                      elsif params[ :type ] == 'video'
+                        object_story_spec.video_data
+                      end
+
+          new_creative_data[ :name ] = current.name
+          new_creative_data[ :video_id ] = link_data.video_id
+          new_creative_data[ :title ] = link_data.title
+          new_creative_data[ :message ] = link_data.message
+          new_creative_data[ :link ] = params[ :link ] || link_data.link
+          new_creative_data[ :link_title ] = link_data.name
+          new_creative_data[ :image_hash ] = link_data.image_hash
+          new_creative_data[ :call_to_action_type ] = link_data.call_to_action.type
+          new_creative_data[ :call_to_action_link_caption ] = link_data.call_to_action.value && link_data.call_to_action.value.link_caption
+          new_creative_data[ :link_description ] = link_data.description || link_data.link_description
+          new_creative_data[ :attachment_style ] = link_data.attachment_style
+          new_creative_data[ :caption ] = link_data.caption
+          new_creative_data[ :page_id ] = object_story_spec.page_id
+
+          if object_story_spec.instagram_actor_id
+            new_creative_data[ :instagram_actor_id ] = object_story_spec.instagram_actor_id
+          end
+        end
       end
 
       new_creative = ad_account.create_ad_creative( new_creative_data, creative_type: params[ :type ] )

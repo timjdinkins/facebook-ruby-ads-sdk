@@ -7,6 +7,15 @@ module FacebookAds
 
     class << self
 
+      def ptr( url_tags:, object_story_id:, instagram_actor_id: )
+        {
+          url_tags: url_tags.to_query,
+          object_story_id: object_story_id,
+          object_type: 'SHARE',
+          instagram_actor_id: instagram_actor_id
+        }
+      end
+
       def link( name:, title:, body:, link_url:, image_hash:, page_id:, url_tags: nil )
         object_story_spec = {
           'page_id' => page_id,

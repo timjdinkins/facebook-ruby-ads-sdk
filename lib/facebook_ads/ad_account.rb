@@ -83,6 +83,8 @@ module FacebookAds
         create_image_ad_creative(creative)
       when 'video'
         create_video_ad_creative(creative)
+      when 'ptr'
+        create_ptr_ad_creative(creative)
       else
         create_image_ad_creative(creative)
       end
@@ -254,6 +256,18 @@ module FacebookAds
       end
 
       query = AdCreative.link(creative)
+      result = AdCreative.post("/#{id}/adcreatives", query: query)
+      AdCreative.find(result['id'])
+    end
+
+    def create_ptr_ad_creative(creative)
+      required = %i[url_tags instagram_actor_id object_story_id]
+
+      unless (keys = required - creative.keys).length.zero?
+        raise Exception, "Creative is missing the following: #{keys.join(', ')}"
+      end
+
+      query = AdCreative.ptr(creative)
       result = AdCreative.post("/#{id}/adcreatives", query: query)
       AdCreative.find(result['id'])
     end
