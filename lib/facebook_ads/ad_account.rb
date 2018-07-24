@@ -163,7 +163,7 @@ module FacebookAds
     # hash_many ad_audiences
 
     def create_lal_ad_audience( origin_campaign:, conversion_type:, start_ratio:, end_ratio:, country: 'US' )
-      name = "#{ origin_campaign.name }_LAL#{ r.start }p#{ r.end }p"
+      name = "#{ origin_campaign.name }_LAL#{ start_ratio }p#{ end_ratio }p"
       spec = {'origin_ids': origin_campaign.id, 'starting_ratio': start_ratio.to_f / 100, 'ratio': end_ratio.to_f / 100, 'conversion_type': conversion_type, 'country': country }
       query = {
         name: name,
